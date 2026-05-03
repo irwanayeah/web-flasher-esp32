@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ESP32 Web Flasher</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>⚡ ESP32 NAT Router Flasher</h2>
+
+    <p>Connect ESP32 via USB, lalu flash firmware langsung dari browser</p>
+
+    <button id="connect">🔌 Connect ESP32</button>
+    <button id="flash">🚀 Flash Firmware</button>
+
+    <p id="status">Status: idle</p>
+
+    <script type="module">
+
+        import { ESPLoader } from "https://unpkg.com/esptool-js@latest/bundle.js";
+
+        let port;
+        let loader;
+
+        const status = (msg) => document.getElementById("status").innerText = msg;
+
+        // CONNECT ESP32
+        document.getElementById("connect").onclick = async () => {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+
+                loader = new ESPLoader({
+                    transport: port
+                });
+
+                status("ESP32 Connected ✔");
+            } catch (e) {
+                status("Connection failed ❌");
+            }
+        };
+
+        // FLASH FIRMWARE
+        document.getElementById("flash").onclick = async () => {
+            try {
+                status("Loading firmware...");
+
+                const res = await fetch("firmware.bin");
+                const firmware = await res.arrayBuffer();
+
+                status("Flashing... jangan cabut ESP32");
+
+                await loader.writeFlash({
+                    fileArray: [
+                        { data: firmware, address: 0x10000 }
+                    ],
+                    flashSize: "keep",
+                    eraseAll: true
+                });
+
+                status("Flash selesai ✔");
+            } catch (e) {
+                console.log(e);
+                status("Flash gagal ❌");
+            }
+        };
+
+    </script>
+
+</body>
+
+</html>
