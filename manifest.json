@@ -1,0 +1,28 @@
+{
+  "firmwares": [
+    {
+      "name": "NAT Router",
+      "file": "firmware/nat.bin",
+      "desc": "Default NAT repeater mode",
+      "address": 65536
+    },
+    {
+      "name": "Bridge Mode",
+      "file": "firmware/bridge.bin",
+      "desc": "Layer 2 bridge (no NAT)",
+      "address": 65536
+    },
+    {
+      "name": "WISP Mode",
+      "file": "firmware/wisp.bin",
+      "desc": "Optimized hotspot router",
+      "address": 65536
+    },
+    {
+      "name": "Access Point Only",
+      "file": "firmware/ap.bin",
+      "desc": "Pure AP mode",
+      "address": 65536
+    }
+  ]
+}

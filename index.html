@@ -1,86 +1,103 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>ESP32 Web Flasher</title>
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-        }
-    </style>
+  <title>ESP32 Router Flasher</title>
+  <style>
+    body { font-family: Arial; text-align:center; }
+    .card {
+      border:1px solid #ccc;
+      margin:10px;
+      padding:10px;
+      display:inline-block;
+      width:250px;
+    }
+    button { padding:8px; margin-top:5px; }
+  </style>
 </head>
 
 <body>
 
-    <h2>⚡ ESP32 NAT Router Flasher</h2>
+<h2>⚡ ESP32 Router OS Installer</h2>
 
-    <p>Connect ESP32 via USB, lalu flash firmware langsung dari browser</p>
+<button onclick="connect()">🔌 Connect ESP32</button>
 
-    <button id="connect">🔌 Connect ESP32</button>
-    <button id="flash">🚀 Flash Firmware</button>
+<h3>Firmware List</h3>
+<div id="list">Loading...</div>
 
-    <p id="status">Status: idle</p>
+<p id="status">Idle</p>
 
-    <script type="module">
+<script type="module">
 
-        import { ESPLoader } from "https://unpkg.com/esptool-js@latest/bundle.js";
+import { ESPLoader } from "https://unpkg.com/esptool-js@latest/bundle.js";
 
-        let port;
-        let loader;
+let loader;
 
-        const status = (msg) => document.getElementById("status").innerText = msg;
+const status = (t) => document.getElementById("status").innerText = t;
 
-        // CONNECT ESP32
-        document.getElementById("connect").onclick = async () => {
-            try {
-                port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 115200 });
+// CONNECT
+window.connect = async () => {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
 
-                loader = new ESPLoader({
-                    transport: port
-                });
+    loader = new ESPLoader({ transport: port });
 
-                status("ESP32 Connected ✔");
-            } catch (e) {
-                status("Connection failed ❌");
-            }
-        };
+    status("ESP32 Connected ✔");
+};
 
-        // FLASH FIRMWARE
-        document.getElementById("flash").onclick = async () => {
-            try {
-                status("Loading firmware...");
+// LOAD LIST
+async function loadFirmware() {
+    const res = await fetch("manifest.json");
+    const data = await res.json();
 
-                const res = await fetch("firmware.bin");
-                const firmware = await res.arrayBuffer();
+    const container = document.getElementById("list");
+    container.innerHTML = "";
 
-                status("Flashing... jangan cabut ESP32");
+    data.firmwares.forEach(fw => {
 
-                await loader.writeFlash({
-                    fileArray: [
-                        { data: firmware, address: 0x10000 }
-                    ],
-                    flashSize: "keep",
-                    eraseAll: true
-                });
+        const div = document.createElement("div");
+        div.className = "card";
 
-                status("Flash selesai ✔");
-            } catch (e) {
-                console.log(e);
-                status("Flash gagal ❌");
-            }
-        };
+        div.innerHTML = `
+            <h4>${fw.name}</h4>
+            <p>${fw.desc}</p>
+            <button onclick="flash('${fw.file}', ${fw.address})">
+              Flash
+            </button>
+        `;
 
-    </script>
+        container.appendChild(div);
+    });
+}
+
+// FLASH FUNCTION
+window.flash = async (file, address) => {
+    try {
+        status("Loading firmware...");
+
+        const res = await fetch(file);
+        const bin = await res.arrayBuffer();
+
+        status("Flashing... jangan cabut ESP32");
+
+        await loader.writeFlash({
+            fileArray: [
+                { data: bin, address: address }
+            ],
+            eraseAll: true,
+            flashSize: "keep"
+        });
+
+        status("Flash selesai ✔");
+
+    } catch (e) {
+        console.log(e);
+        status("Flash gagal ❌");
+    }
+};
+
+loadFirmware();
+
+</script>
 
 </body>
-
 </html>
