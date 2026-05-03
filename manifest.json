@@ -1,6 +1,12 @@
 {
     "firmwares": [
         {
+            "name": "DAL WiFi ID ESP32 v1.0",
+            "file": "firmware/dal_wifiid_esp32_v1.0.bin",
+            "desc": "Firmware for DAL WiFi ID ESP32",
+            "address": 65536
+        },
+        {
             "name": "DAL WiFi ID ESP8266 v1.2",
             "file": "firmware/dal_wifiid_esp8266_v1.2.bin",
             "desc": "Firmware for DAL WiFi ID ESP8266",
